@@ -12,11 +12,11 @@
       "cwd": "${workspaceRoot}"
     },
     {
-      "type": "node",
+      "type": "node2",
       "request": "attach",
       "name": "Attach to Process",
       "address": "127.0.0.1",
-      "port": 5555, // SSH tunnel to actual server e.g. ssh -L 5555:127.0.0.1:5555 server ip
+      "port": 9229, // SSH tunnel to actual server e.g. ssh -L 5555:127.0.0.1:5555 server ip
       "restart": false,
       "remoteRoot": "/shares/rpakdel/serialsqlite/",
       "localRoot": "${workspaceRoot}/",

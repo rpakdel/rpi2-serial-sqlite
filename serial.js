@@ -25,14 +25,18 @@ port.on('error', function(err) {
 
 function onData(callback) {
   port.on('data', function (data) {
-    const d = JSON.parse(data);
-    // assume the time the data is received is when it is recorded
-    // according to Adafruit driver for the AM2302, there might be a 2 second delay
-    // we read the data on the arduino every 5 seconds
-    // there is some processing and transmission delay too
-    d.date = new Date();
-    //console.log(d);
-    callback(d);
+    try {
+      const d = JSON.parse(data);
+      // assume the time the data is received is when it is recorded
+      // according to Adafruit driver for the AM2302, there might be a 2 second delay
+      // we read the data on the arduino every 5 seconds
+      // there is some processing and transmission delay too
+      d.date = new Date();
+      //console.log(d);
+      callback(d);  
+    } catch (error) {
+      console.log('> could not parse data. Skipping.', error);
+    }    
   });
 }
 

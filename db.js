@@ -23,7 +23,7 @@ function createTemperatureTable()
       `CREATE TABLE "temperature" (
 	      "id"    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
 	      "value"	REAL,
-	      "date"	TEXT);`,
+	      "date"	DATE);`,
       function(err) {
         if (err) reject(err);
         else resolve();
@@ -38,7 +38,7 @@ function createRelHumidityTable() {
       `CREATE TABLE "relhumidity" (
 	      "id"	  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
 	      "value"	REAL,
-	      "date"	TEXT);`,
+	      "date"	DATE);`,
       function(err) {
         if (err) reject(err);
         else resolve();
@@ -51,7 +51,7 @@ function createTables(exists) {
     console.log('> New DB; creating schema.');
     createTemperatureTable()
       .then(createRelHumidityTable)
-      .then(() => console.log("All tables created"))
+      .then(() => console.log("> All tables created"))
       .catch(err => console.log("> Create tables error: ", err));
     } 
     else console.log('> Existing DB with updated schema.');
@@ -76,7 +76,7 @@ function storeTemperature(temperature, date) {
       `INSERT INTO "temperature" ("value", "date") VALUES ($temperature,  $date)`, 
       { 
         $temperature: temperature, 
-        $date: date 
+        $date: date.toISOString()
       },
       function(err) {
         if (err) reject(err);
@@ -107,7 +107,7 @@ function storeRelHumidity(insertId, relhumidity, date) {
       { 
         $id: insertId,
         $relhumidity: relhumidity, 
-        $date: date 
+        $date: date.toISOString() 
       },
       function(err) {
         if (err) reject(err);
@@ -125,4 +125,42 @@ function store(data) {
     .catch(err => console.log('> DB store error: ', err));
 }
 
-module.exports = { initialize, close, store }
+function getLastTemperatures(limit) {
+  return new Promise(function(resolve, reject) {
+    db.all(
+      `SELECT * FROM "temperature" ORDER BY "date" DESC Limit $limit`,
+       {
+         $limit: limit,
+       },
+       function(err, rows) {
+         if (err) reject(err)
+         else resolve(rows);         
+       }
+    );
+  });
+}
+
+function getTemperatures(startDate, endDate) {
+  // if no start date is given, then use min
+  startDate = startDate || new Date(0);
+  // if no end date is given, use now
+  endDate = endDate || new Date();
+  console.log('startDate', startDate.toISOString());
+  console.log('endDate', endDate.toISOString());
+  return new Promise(function(resolve, reject) {
+    db.all(
+      `SELECT * FROM "temperature" 
+       where "date" between $startDate and $endDate`,
+       {
+         $startDate: startDate.toISOString(),
+         $endDate: endDate.toISOString()
+       },
+       function(err, rows) {
+         if (err) reject(err)
+         else resolve(rows);         
+       }
+    );
+  });
+}
+
+module.exports = { initialize, close, store, getTemperatures, getLastTemperatures }

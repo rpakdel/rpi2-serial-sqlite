@@ -1,12 +1,14 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+const express = require('express');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+const moment = require('moment');
+
+const index = require('./routes/index');
+const users = require('./routes/users');
 
 const serial = require('./serial.js');
 const db = require('./db.js');
@@ -24,7 +26,7 @@ process.on('SIGTERM', shutdown);
 
 serial.onData(db.store);
 
-var app = express();
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -43,7 +45,7 @@ app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -59,5 +61,27 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+
+db.getLastTemperatures(10)
+  .then(rows => {
+    //console.log(rows);
+    //rows.forEach(r => console.log(new Date(r.date).toString()));
+    //rows.map(r => r.date).map(d => moment(d)).map(m => console.log(m.fromNow()));
+  })
+  .catch(err => console.log(err));
+
+let startTime = moment().subtract(moment.duration(10, 'minutes')).toDate();
+let endTime = new Date();
+
+startTime = null;
+endTime = null;
+
+db.getTemperatures(startTime, endTime)
+  .then(rows => {
+    //console.log(rows);
+    //rows.forEach(r => console.log(new Date(r.date).toString()));
+    rows.map(r => r.date).map(d => moment(d)).map(m => console.log(m.fromNow()));
+  })
+  .catch(err => console.log(err));
 
 module.exports = app;
