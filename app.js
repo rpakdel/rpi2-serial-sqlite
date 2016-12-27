@@ -24,7 +24,12 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-serial.onData(db.store);
+let currentData = null;
+
+serial.onData((data) => {
+  currentData = data;
+  db.store(data);
+});
 
 const app = express();
 
@@ -42,6 +47,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+app.use('/api/currentData', function(req, res) {
+  if (currentData != null) {
+    res.json(currentData);
+  } else {
+    res.status(404).send('current data is null.');
+  }  
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

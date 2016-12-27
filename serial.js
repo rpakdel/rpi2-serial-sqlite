@@ -6,6 +6,8 @@ const port = new SerialPort('/dev/ttyAMA0', {
     parser: SerialPort.parsers.readline('\n')
 });
 
+let currentData = null;
+
 let isPortOpen = false;
  
 port.on('open', function() {
@@ -52,4 +54,4 @@ function close() {
 
 }
 
-module.exports = { onData, close };
+module.exports = { onData, close, currentData };
