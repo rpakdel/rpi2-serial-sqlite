@@ -1,3 +1,5 @@
+/* http://paletton.com/#uid=73y270k7UUa3cZA5wXlaiQ5cFL3 */
+
 html, body {
   background: black;
   overflow-y: auto;
@@ -34,8 +36,7 @@ html, body {
   align-content: stretch; /* main axis */
   align-items: stretch; /* cross axis */
   flex-grow: 1;
-  box-shadow: 0px 0px 10px 0px darkgrey;
-  border: 1px black solid;
+  box-shadow: 0px 0px 10px 0px #FFF4E6;
   border-radius: 20px;
   background: #111111;
   padding: 10px;
@@ -57,9 +58,9 @@ html, body {
   flex-grow: 1;
   align-items: center;
   justify-content: flex-start; /* main content start from top  */  
-  border: 1px solid darkgray;
+  border: 1px solid #CDE3F5;
   border-radius: 10px;
-  background: ivory;
+  background: #E4F0FB;
 }
 
 .cardtitle {
@@ -68,18 +69,23 @@ html, body {
   margin-bottom: 10px;
   white-space: nowrap;
   font-family: arial;
+  font-weight: bold;
   font-size: 100%;
   font-variant: small-caps;
-  background: darkgrey;
-  color: white;
-  text-shadow: 1px 1px 0px grey;
-  border: solid 1px;
-  border-left-color: darkgrey;
-  border-right-color: darkgrey;
-  border-bottom-color: darkgrey;
-  border-top-color: darkgrey;
-  padding: 2px 20px;  
+  background: #E3FCE6;
+  color: black;
+  text-shadow: 1px 1px 0px white;
+  border: solid 1px #CDE3F5;
+  padding: 5px 20px;  
   border-radius: 0px 0px 10px 10px;  
+}
+
+.cardtitle-normal {
+  background: #E3FCE6;
+}
+
+.cardtitle-error {
+  background: #FFE7E6;
 }
 
 .cardicon {

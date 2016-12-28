@@ -5,18 +5,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Program",
-      "program": "${workspaceRoot}\\bin\\www",
-      "cwd": "${workspaceRoot}"
-    },
-    {
       "type": "node2",
       "request": "attach",
       "name": "Attach to Process",
       "address": "127.0.0.1",
-      "port": 9229, // SSH tunnel to actual server e.g. ssh -L 5555:127.0.0.1:5555 server ip
+      "port": 9229, // SSH tunnel to actual server e.g. ssh -L 9229:127.0.0.1:9229 server ip (use node --inspect)
       "restart": false,
       "remoteRoot": "/shares/rpakdel/serialsqlite/",
       "localRoot": "${workspaceRoot}/",

@@ -4,7 +4,7 @@ class CardGraph {
   constructor(title) {
     this.title = title
     this.dataSet = []
-    this.root = this.createElement()
+    this.rootElement = this.createElement()
   }
 
   set(dataArray) {
@@ -16,10 +16,10 @@ class CardGraph {
   }
 
   createElement() {
-    let root = document.createElement('div')
-      root.classList.add('graph')
-      root.innerText = this.title
-    return root
+    let rootElement = document.createElement('div')
+      rootElement.classList.add('graph')
+      rootElement.innerText = this.title
+    return rootElement
   }
 }
 
@@ -34,32 +34,36 @@ class DashboardCard {
     this.iconSrc = iconSrc
     
     this.units = units
-    
-    this.valueElement = null
-    this.dateElement = null
-    this.isHidden = false
-
     this.graph = graph
-    this.root = this.createElement()
+
+    this.isHidden = false
+    this.hasError = false
+
+    let { rootElement, titleElement, valueElement, dateElement } = this.createElement()
+    
+    this.titleElement = titleElement
+    this.valueElement = valueElement
+    this.dateElement = dateElement
+    this.rootElement = rootElement
   }
 
   createElement() {
-    // root element
-    let root = document.createElement('div')
-    root.id = this.id
-    root.classList.add('card')
-    root.classList.add('card-visible');
+    // rootElement element
+    let rootElement = document.createElement('div')
+    rootElement.id = this.cardId
+    rootElement.classList.add('card')
+    rootElement.classList.add('card-visible');
     
     // container
     let cardContainer = document.createElement('div')
     cardContainer.classList.add('cardcontainer')
-    root.appendChild(cardContainer)
+    rootElement.appendChild(cardContainer)
 
     // title
-    let cardTitle = document.createElement('div')
-    cardTitle.classList.add('cardtitle')
-    cardTitle.innerText = this.title
-    cardContainer.appendChild(cardTitle)
+    let titleElement = document.createElement('div')
+    titleElement.classList.add('cardtitle')
+    titleElement.innerText = this.title
+    cardContainer.appendChild(titleElement)
 
     // icon
     let cardIcon = document.createElement('img')
@@ -73,10 +77,10 @@ class DashboardCard {
     cardContainer.appendChild(valueContainer)    
 
     // value
-    this.valueElement = document.createElement('span')
-    this.valueElement.classList.add('value')
-    this.valueElement.innerText = "VALUE"
-    valueContainer.appendChild(this.valueElement)
+    let valueElement = document.createElement('span')
+    valueElement.classList.add('value')
+    valueElement.innerText = "VALUE"
+    valueContainer.appendChild(valueElement)
 
     // units
     if (this.units) {
@@ -87,17 +91,22 @@ class DashboardCard {
     }
 
     // date
-    this.dateElement = document.createElement('div')
-    this.dateElement.classList.add('date');
-    this.dateElement.innerText = 'date updated';
-    cardContainer.appendChild(this.dateElement);
+    let dateElement = document.createElement('div')
+    dateElement.classList.add('date');
+    dateElement.innerText = 'date updated';
+    cardContainer.appendChild(dateElement);
 
     // graph
     if (this.graph) {      
-      cardContainer.appendChild(this.graph.root);
+      cardContainer.appendChild(this.graph.rootElement);
     }
 
-    return root;
+    return {
+      rootElement,
+      titleElement,
+      valueElement,
+      dateElement,
+    };
   }
 
   updateCardElements(dataPoint) {
@@ -117,6 +126,7 @@ class DashboardCard {
 
   setData(data) {
     if (data) {
+      this.setHasError(false)
       // card id must match a property name in data
       let value = data[this.cardId]
       if (value) {
@@ -130,18 +140,34 @@ class DashboardCard {
         }
       }
     } else {
+      this.setHasError(true)
       this.updateCardElements({ value: "Err", date: "" });
     }
   }
 
   setIsHidden(isHidden) {
-    this.isHidden = isHidden;
-    if (isHidden) {
-      this.root.classList.remove('card-visible')
-      this.root.classList.add('card-hidden')
-    } else {
-      this.root.classList.remove('card-hidden')
-      this.root.classList.add('card-visible')
+    if (this.isHidden != isHidden) {
+      this.isHidden = isHidden
+      if (isHidden) {
+        this.rootElement.classList.remove('card-visible')
+        this.rootElement.classList.add('card-hidden')
+      } else {
+        this.rootElement.classList.remove('card-hidden')
+        this.rootElement.classList.add('card-visible')
+      }
+    }
+  }
+
+  setHasError(hasError) {
+    if (this.hasError != hasError) {
+      this.hasError = hasError
+      if (hasError) {
+        this.titleElement.classList.remove('cardtitle-normal')
+        this.titleElement.classList.add('cardtitle-error')
+      } else {
+        this.titleElement.classList.remove('cardtitle-error')
+        this.titleElement.classList.add('cardtitle-normal')
+      }
     }
   }
 }
@@ -150,7 +176,7 @@ class Dashboard {
   constructor() {
     statusbar.innerText += "Dashboard ctor\n";
 
-    this.root = document.getElementById('dashboard')
+    this.rootElement = document.getElementById('dashboard')
     this.cards = []
     setInterval(this.getCurrentData.bind(this), 5000)
     this.getCurrentData()
@@ -174,8 +200,7 @@ class Dashboard {
         console.log('> No valid response')
         statusbar.innerText += 'No valid response'
         this.setCardsData(null)
-      }
-      console.log(this.response);
+      }      
     }.bind(this))
 
     xhr.addEventListener('error', function(evt) {
@@ -192,17 +217,19 @@ class Dashboard {
 
   addCard(dashboardCard) {
     this.cards.push(dashboardCard)
-    this.root.appendChild(dashboardCard.root)
-    dashboardCard.root.addEventListener('click', this.cardOnClick.bind(this));
+    this.rootElement.appendChild(dashboardCard.rootElement)
+    dashboardCard.rootElement.addEventListener('click', this.cardOnClick.bind(this));
   }
 
   cardOnClick (evt) {
+    // look for the root element of the card clicked
     let el = evt.target
       while (el && !el.classList.contains('card')) {
         el = el.parentNode;
       }
       if (el && el.id) {
-        let card = this.cards.find(c => c.id === el.id);
+        // find the matching card
+        let card = this.cards.find(c => c.cardId === el.id);
         if (card) {          
           this.cards.forEach(c => {
             if (c !== card) c.setIsHidden(!c.isHidden)
