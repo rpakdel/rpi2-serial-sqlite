@@ -77,11 +77,11 @@ app.use(function(err, req, res, next) {
 db.getLastTemperatures(10)
   .then(rows => {
     //console.log(rows);
-    //rows.forEach(r => console.log(new Date(r.date).toString()));
-    //rows.map(r => r.date).map(d => moment(d)).map(m => console.log(m.fromNow()));
+    rows.forEach(r => console.log(r));
   })
   .catch(err => console.log(err));
 
+/*
 let startTime = moment().subtract(moment.duration(10, 'minutes')).toDate();
 let endTime = new Date();
 
@@ -95,5 +95,5 @@ db.getTemperatures(startTime, endTime)
     rows.map(r => r.date).map(d => moment(d)).map(m => console.log(m.fromNow()));
   })
   .catch(err => console.log(err));
-
+*/
 module.exports = app;
