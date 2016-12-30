@@ -1,25 +1,82 @@
 var statusbar = document.getElementById('statusbar');
 
 class CardGraph {
-  constructor(title) {
+  constructor(graphId, title) {
+    this.graphId = graphId
     this.title = title
     this.dataSet = []
-    this.rootElement = this.createElement()
+
+    let { rootElement, chartElement } = this.createElement()
+    this.rootElement = rootElement
+    this.chartElement = chartElement
+    
+    this.chart = null
+  }
+
+  createChart() {
+    // this must be called when the root is added to the DOM
+    this.chart = new Chart(this.chartElement, {
+      type: 'line',
+      pointRadius: 1,
+      datasets: [{
+        label: this.title,
+      }],
+      options: {       
+        legend: {
+          display: false
+        },
+        scales: {
+            xAxes: [{
+                display: true,
+                type: 'time',
+                time: {
+                    unit: 'minute'
+                }
+            }]
+        }
+      }
+    })
   }
 
   set(dataArray) {
     this.dataSet = dataArray
   }
 
-  append(dataPoint) {
+  prepareData() {
+    if (this.chart.data.datasets.length == 0) {
+      this.chart.data.datasets[0] = [{
+        label: this.title,
+        data: []
+      }]
+    }
+  }
+
+  appendData(dataPoint) {    
     this.dataSet[this.dataSet.length] = dataPoint
+    if (this.chart) {
+      this.chart.data.labels.push(dataPoint.date)
+      if (this.chart.data.datasets.length == 0) {
+        this.chart.data.datasets[0] = [{
+          label: this.title,
+          data: [dataPoint.value]
+        }]
+      } else {
+        this.chart.data.datasets[0].data.push(dataPoint.value)
+      }
+      
+      this.chart.update()
+    }
   }
 
   createElement() {
     let rootElement = document.createElement('div')
+      rootElement.id = this.graphId
       rootElement.classList.add('graph')
-      rootElement.innerText = this.title
-    return rootElement
+
+    let chartElement = document.createElement('canvas')
+    rootElement.appendChild(chartElement)
+
+    return { rootElement, chartElement }
   }
 }
 
@@ -39,12 +96,12 @@ class DashboardCard {
     this.isHidden = false
     this.hasError = false
 
-    let { rootElement, titleElement, valueElement, dateElement } = this.createElement()
+    let elements = this.createElement()
     
-    this.titleElement = titleElement
-    this.valueElement = valueElement
-    this.dateElement = dateElement
-    this.rootElement = rootElement
+    this.titleElement = elements.titleElement
+    this.valueElement = elements.valueElement
+    this.dateElement = elements.dateElement
+    this.rootElement = elements.rootElement
   }
 
   createElement() {
@@ -124,7 +181,7 @@ class DashboardCard {
     
   }
 
-  setData(data) {
+  appendData(data) {
     if (data) {
       this.setHasError(false)
       // card id must match a property name in data
@@ -136,7 +193,7 @@ class DashboardCard {
         };
         this.updateCardElements(dataPoint)
         if (this.graph) {
-          this.graph.append(dataPoint);
+          this.graph.appendData(dataPoint);
         }
       }
     } else {
@@ -170,6 +227,12 @@ class DashboardCard {
       }
     }
   }
+
+  createGraphChart() {
+    if (this.graph) {
+      this.graph.createChart();
+    }
+  }
 }
 
 class Dashboard {
@@ -181,6 +244,21 @@ class Dashboard {
     setInterval(this.getCurrentData.bind(this), 5000)
     this.getCurrentData()
     statusbar.innerText += "Dashboard ctor done\n";
+
+    this.isSingleView = false;    
+  }
+
+  setIsSingleView(isSingle) {
+    if (this.isSingleView != isSingle) {
+      this.isSingleView = isSingle;
+      if (isSingle) {
+        this.rootElement.classList.remove('dashboard-tileview');
+        this.rootElement.classList.add('dashboard-singleview');
+      } else {
+        this.rootElement.classList.remove('dashboard-singleview');
+        this.rootElement.classList.add('dashboard-tileview');
+      }
+    }
   }
 
   getCurrentData() {
@@ -190,35 +268,36 @@ class Dashboard {
         try {
           let data = JSON.parse(xhr.responseText)
           data.date = new Date(data.date)
-          this.setCardsData(data)
+          this.appendData(data)
         } catch (error) {
           console.log('> Could not parse data', error)
           statusbar.innerText += error
-          this.setCardsData(null)
+          this.appendData(null)
         }
       } else {
         console.log('> No valid response')
         statusbar.innerText += 'No valid response'
-        this.setCardsData(null)
+        this.appendData(null)
       }      
     }.bind(this))
 
     xhr.addEventListener('error', function(evt) {
-      this.setCardsData(null)
+      this.appendData(null)
     }.bind(this))
 
     xhr.open('GET', '/api/currentData')
     xhr.send()
   }
 
-  setCardsData(data) {
-    this.cards.forEach(c => c.setData(data))
+  appendData(data) {
+    this.cards.forEach(c => c.appendData(data))
   }
 
   addCard(dashboardCard) {
     this.cards.push(dashboardCard)
     this.rootElement.appendChild(dashboardCard.rootElement)
-    dashboardCard.rootElement.addEventListener('click', this.cardOnClick.bind(this));
+    dashboardCard.createGraphChart()
+    dashboardCard.rootElement.addEventListener('click', this.cardOnClick.bind(this))
   }
 
   cardOnClick (evt) {
@@ -235,24 +314,25 @@ class Dashboard {
             if (c !== card) c.setIsHidden(!c.isHidden)
           })
         }
+        this.setIsSingleView(!this.isSingleView)
       }
     }
 };
 
-statusbar.innerText += "Starting\n";
+statusbar.innerText += "Starting\n"
+Chart.defaults.global.responsive = true
+Chart.defaults.global.maintainAspectRatio = true
 
-var dashboard = new Dashboard();
+var dashboard = new Dashboard()
 
-let temperatureGraph = new CardGraph("Temperature graph");
-let humidityGraph = new CardGraph("Relative humidity graph");
+let temperatureGraph = new CardGraph("tempgraph", "Temperature graph")
+let humidityGraph = new CardGraph("relhumiditygraph", "Relative humidity graph")
 
 var temp = new DashboardCard('temp', 'Temperature', '/images/temperature_128x128.png', '°C', temperatureGraph);
 var relhumidity = new DashboardCard('relhumidity', 'Rel. Humidity', '/images/relhumidity_128x128.png', '%', humidityGraph);
 
 dashboard.addCard(temp);
 dashboard.addCard(relhumidity);
-
-
 
 dashboard.addCard(new DashboardCard('t1', 'T1', '/images/data_128x128.png', 'Units'));
 dashboard.addCard(new DashboardCard('t2', 'T2', '/images/data_128x128.png'));

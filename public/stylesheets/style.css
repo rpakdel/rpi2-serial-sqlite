@@ -1,8 +1,15 @@
 /* http://paletton.com/#uid=73y270k7UUa3cZA5wXlaiQ5cFL3 */
 
-html, body {
-  background: black;
-  overflow-y: auto;
+html, {
+  background: grey;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+body {
+  background: grey;
+  padding: 0px;
+  margin: 0px;
 }
 
 .statusbar {
@@ -10,7 +17,6 @@ html, body {
   position: fixed;
   background: lightgray;
   bottom: 0px;
-  width: 100%;
   height: 80px;
   overflow-y: scroll;
   text-align: left;
@@ -21,27 +27,31 @@ html, body {
 .dashboard {
   display: flex;
   flex-direction: row;
-  flex: 1;
-  flex-flow: wrap;
+  flex-wrap: wrap;
   justify-content: center;  /* main axis (horizontal) */
   align-items: stretch; /* cross axis (vertical) */  
-  align-content: center; /* main axis multi-line */
+  align-content: stretch; /* main axis multi-line */
   background: black;
-  padding: 10px;
+  padding: 5px;
+  margin: 0px;
+}
+
+.dashboard-singleview {
+  flex-flow: wrap;
+}
+
+.dashboard-tileview {
+  flex-flow: wrap;
 }
 
 .card {
-  display: flex;
-  justify-content: center; /* main axis */
-  align-content: stretch; /* main axis */
-  align-items: stretch; /* cross axis */
+  display: block;
   flex-grow: 1;
-  box-shadow: 0px 0px 10px 0px #FFF4E6;
+  box-shadow: 0px 0px 10px 0px grey;
   border-radius: 20px;
   background: #111111;
   padding: 10px;
-  margin: 10px;
-  min-width: 30%;
+  margin: 5px;
 }
 
 .card-visible {
@@ -55,29 +65,32 @@ html, body {
 .cardcontainer {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
   align-items: center;
+  align-content: flex-start;
   justify-content: flex-start; /* main content start from top  */  
   border: 1px solid #CDE3F5;
   border-radius: 10px;
-  background: #E4F0FB;
+  background: ivory;
+  width: 100%;
+  margin: 0px auto;
 }
 
 .cardtitle {
-  display: inline-flex;
   margin-top: -1px;
   margin-bottom: 10px;
   white-space: nowrap;
   font-family: arial;
   font-weight: bold;
-  font-size: 100%;
   font-variant: small-caps;
   background: #E3FCE6;
   color: black;
   text-shadow: 1px 1px 0px white;
   border: solid 1px #CDE3F5;
-  padding: 5px 20px;  
   border-radius: 0px 0px 10px 10px;  
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 5px;
 }
 
 .cardtitle-normal {
@@ -89,23 +102,15 @@ html, body {
 }
 
 .cardicon {
-  display: flex;
-  margin-top: 10px;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 128px;
+  margin: 10px;
 }
 
 .cardvalue {
-  display: flex;
   white-space: nowrap;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
+  margin: 10px;
 }
 
 .value {
-  display: inline-block;
   color: black;
   font-size: 300%;
   font-weight: bold;
@@ -127,10 +132,6 @@ html, body {
 }
 
 .graph {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 256px;
-  min-height: 256px;
-
+  margin-top: 10px;
+  margin-bottom: 10px;    
 }
